@@ -1,0 +1,67 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp">
+
+    <!-- Department Name Title -->
+    <TextView
+        android:id="@+id/departmentNameTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Department Name:"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginTop="4dp" />
+
+    <!-- Department Name TextView -->
+    <TextView
+        android:id="@+id/departmentItem_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:layout_below="@id/departmentNameTitle"
+        android:layout_marginTop="4dp" />
+
+    <!-- Department Code Title -->
+    <TextView
+        android:id="@+id/departmentCodeTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Department Code:"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_below="@id/departmentItem_name"
+        android:layout_marginTop="12dp" />
+
+    <!-- Department Code TextView -->
+    <TextView
+        android:id="@+id/departmentItem_code"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:layout_below="@id/departmentCodeTitle"
+        android:layout_marginTop="4dp" />
+
+    <Button
+        android:id="@+id/editButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Edit"
+        android:backgroundTint="#008787"
+        android:textColor="@color/white"
+        android:layout_alignTop="@id/departmentNameTitle"
+        android:layout_alignParentEnd="true"
+        android:padding="8dp" />
+
+    <Button
+        android:id="@+id/deleteButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="X"
+        android:backgroundTint="#E53935"
+        android:textColor="@color/white"
+        android:layout_alignTop="@id/departmentCodeTitle"
+        android:layout_alignParentEnd="true"
+        android:padding="8dp" />
+
+</RelativeLayout>
