@@ -10,15 +10,11 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.hospitalapp.R;
-import com.example.hospitalapp.dto.DepartmentDto;
 import com.example.hospitalapp.dto.PatientDto;
 
 import org.threeten.bp.LocalDate;
 import org.threeten.bp.format.DateTimeFormatter;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public class PatientAdapter extends RecyclerView.Adapter<PatientHolder> {

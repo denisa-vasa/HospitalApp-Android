@@ -11,7 +11,7 @@ import retrofit2.converter.scalars.ScalarsConverterFactory;
 
 public class RetrofitService {
     private static Retrofit retrofit;
-    private static final String BASE_URL = "http://192.168.1.11:8080/api/";
+    private static final String BASE_URL = "http:/192.168.1.9:8080/api/";
 
     public RetrofitService() {
         HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
@@ -42,5 +42,9 @@ public class RetrofitService {
 
     public PatientsApi getPatientsApi() {
         return getRetrofitInstance().create(PatientsApi.class);
+    }
+
+    public ClinicalDataApi getClinicalDataApi() {
+        return getRetrofitInstance().create(ClinicalDataApi.class);
     }
 }
