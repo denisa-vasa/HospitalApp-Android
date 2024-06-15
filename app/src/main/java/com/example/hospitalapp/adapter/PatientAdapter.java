@@ -1,5 +1,7 @@
 package com.example.hospitalapp.adapter;
 
+import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,6 +11,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.hospitalapp.ClinicalRecordsActivity;
 import com.example.hospitalapp.R;
 import com.example.hospitalapp.dto.PatientDto;
 
@@ -20,7 +23,10 @@ import java.util.List;
 public class PatientAdapter extends RecyclerView.Adapter<PatientHolder> {
     private List<PatientDto> patientDtoList;
     private OnItemClickListener listener;
-    public PatientAdapter(List<PatientDto> patientDtoList) {
+    private Context context; // Add this line
+
+    public PatientAdapter(Context context, List<PatientDto> patientDtoList) {
+        this.context = context; // Initialize context
         this.patientDtoList = patientDtoList;
     }
 
@@ -32,9 +38,7 @@ public class PatientAdapter extends RecyclerView.Adapter<PatientHolder> {
 
     public interface OnItemClickListener {
         void onItemClick(PatientDto patientDto);
-
         void onEditClick(PatientDto patientDto);
-
         void onDeleteClick(PatientDto patientDto);
     }
 
@@ -72,6 +76,12 @@ public class PatientAdapter extends RecyclerView.Adapter<PatientHolder> {
             }
         });
 
+        holder.clinicalRecordsButton.setOnClickListener(v -> {
+            Intent intent = new Intent(context, ClinicalRecordsActivity.class);
+            intent.putExtra("PATIENT_NAME", patientDto.getFirstName() + " " + patientDto.getLastName());
+            context.startActivity(intent);
+        });
+
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onItemClick(patientDto);
@@ -86,14 +96,17 @@ public class PatientAdapter extends RecyclerView.Adapter<PatientHolder> {
 
     public static class PatientViewHolder extends RecyclerView.ViewHolder {
         public TextView patientName, patientLastName, patientBirthDate;
-        public Button editButton, deleteButton, nextButton;
+        public Button editButton, deleteButton, nextButton, dischargeButton, clinicalRecordsButton;
         public PatientViewHolder(@NonNull View itemView) {
             super(itemView);
-            patientName = itemView.findViewById(R.id.patientsFirstName);
+            patientName = itemView.findViewById(R.id.textViewFirstName);
             patientLastName = itemView.findViewById(R.id.patientsLastName);
             patientBirthDate = itemView.findViewById(R.id.patientsBirthDate);
             editButton = itemView.findViewById(R.id.editButton);
             deleteButton = itemView.findViewById(R.id.deleteButton);
+            nextButton = itemView.findViewById(R.id.nextButton);
+            dischargeButton = itemView.findViewById(R.id.dischargeButton);
+            clinicalRecordsButton = itemView.findViewById(R.id.clinicalRecordsButton);
         }
     }
 }

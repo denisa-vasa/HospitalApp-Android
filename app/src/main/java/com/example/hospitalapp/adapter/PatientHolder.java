@@ -11,7 +11,7 @@ import com.example.hospitalapp.R;
 
 public class PatientHolder extends RecyclerView.ViewHolder {
     TextView firstName, lastName, birthDate;
-    Button editButton, deleteButton, nextButton;
+    public Button editButton, deleteButton, nextButton, dischargeButton, clinicalRecordsButton;
     public PatientHolder(@NonNull View itemView) {
         super(itemView);
         firstName = itemView.findViewById(R.id.textViewFirstName);
@@ -19,5 +19,8 @@ public class PatientHolder extends RecyclerView.ViewHolder {
         birthDate = itemView.findViewById(R.id.textViewBirthday);
         editButton = itemView.findViewById(R.id.editButton);
         deleteButton = itemView.findViewById(R.id.deleteButton);
+        nextButton = itemView.findViewById(R.id.nextButton);
+        dischargeButton = itemView.findViewById(R.id.dischargeButton);
+        clinicalRecordsButton = itemView.findViewById(R.id.clinicalRecordsButton);
     }
 }

@@ -37,7 +37,7 @@ public class PatientsActivity extends AppCompatActivity {
 
     private static final String TAG = "PatientsActivity";
     private RecyclerView recyclerView;
-    private Button addButton, searchButton, dischargeButton, clinicalRecordButton;
+    private Button addButton, searchButton;
     private EditText searchField;
     private PatientsApi patientsApi;
     private PatientAdapter patientAdapter;
@@ -46,6 +46,7 @@ public class PatientsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d("PatientsActivity", "onCreate called");
         AndroidThreeTen.init(this);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_patients);
@@ -53,11 +54,11 @@ public class PatientsActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        searchField = findViewById(R.id.searchField);
+        searchField = findViewById(R.id.searchField_Patients);
         searchButton = findViewById(R.id.searchPatientsButton);
         addButton = findViewById(R.id.addPatientsButton);
 
-        patientAdapter = new PatientAdapter(new ArrayList<>());
+        patientAdapter = new PatientAdapter(this, new ArrayList<>());
         recyclerView.setAdapter(patientAdapter);
 
         patientAdapter.setOnItemClickListener(new PatientAdapter.OnItemClickListener() {
@@ -66,12 +67,10 @@ public class PatientsActivity extends AppCompatActivity {
             public void onItemClick(PatientDto patientDto) {
 
             }
-
             @Override
             public void onEditClick(PatientDto patientDto) {
                 showPatientDialog(patientDto);
             }
-
             @Override
             public void onDeleteClick(PatientDto patientDto) {
                 showDeleteConfirmationDialog(patientDto);
@@ -86,12 +85,10 @@ public class PatientsActivity extends AppCompatActivity {
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
                 // Not needed
             }
-
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 // Not needed
             }
-
             @Override
             public void afterTextChanged(Editable s) {
                 // After the text changes, load patients based on the new search query
