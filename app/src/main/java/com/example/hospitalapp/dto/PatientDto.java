@@ -35,6 +35,28 @@ public class PatientDto {
         this.birthDate = birthDate;
     }
 
+    public PatientDto(String patientName) {
+        // Split the patientName into first and last names
+        String[] nameParts = patientName.split("\\s+", 2); // Split into two parts at most
+        if (nameParts.length > 0) {
+            this.firstName = nameParts[0]; // First part is first name
+            if (nameParts.length > 1) {
+                this.lastName = nameParts[1]; // Second part is last name
+            }
+        }
+    }
+
+    public PatientDto(Long patientId, String patientName) {
+        id = patientId;
+        String[] nameParts = patientName.split("\\s+", 2); // Split into two parts at most
+        if (nameParts.length > 0) {
+            this.firstName = nameParts[0]; // First part is first name
+            if (nameParts.length > 1) {
+                this.lastName = nameParts[1]; // Second part is last name
+            }
+        }
+    }
+
     public Long getId() {
         return id;
     }

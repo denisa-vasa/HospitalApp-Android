@@ -78,6 +78,7 @@ public class PatientAdapter extends RecyclerView.Adapter<PatientHolder> {
 
         holder.clinicalRecordsButton.setOnClickListener(v -> {
             Intent intent = new Intent(context, ClinicalRecordsActivity.class);
+            intent.putExtra("PATIENT_ID", patientDto.getId());
             intent.putExtra("PATIENT_NAME", patientDto.getFirstName() + " " + patientDto.getLastName());
             context.startActivity(intent);
         });
