@@ -40,6 +40,7 @@ public class PatientAdapter extends RecyclerView.Adapter<PatientHolder> {
         void onItemClick(PatientDto patientDto);
         void onEditClick(PatientDto patientDto);
         void onDeleteClick(PatientDto patientDto);
+        void onDischargeClick(PatientDto patientDto);
     }
 
     public void setOnItemClickListener(OnItemClickListener listener) {
@@ -81,6 +82,12 @@ public class PatientAdapter extends RecyclerView.Adapter<PatientHolder> {
             intent.putExtra("PATIENT_ID", patientDto.getId());
             intent.putExtra("PATIENT_NAME", patientDto.getFirstName() + " " + patientDto.getLastName());
             context.startActivity(intent);
+        });
+
+        holder.dischargeButton.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onDischargeClick(patientDto);
+            }
         });
 
         holder.itemView.setOnClickListener(v -> {

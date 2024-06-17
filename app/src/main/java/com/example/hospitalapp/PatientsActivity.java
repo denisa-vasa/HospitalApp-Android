@@ -7,8 +7,10 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -19,7 +21,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.hospitalapp.adapter.PatientAdapter;
+import com.example.hospitalapp.dto.DischargeReasonDto;
 import com.example.hospitalapp.dto.PatientDto;
+import com.example.hospitalapp.retrofit.AdmissionStateApi;
 import com.example.hospitalapp.retrofit.PatientsApi;
 import com.example.hospitalapp.retrofit.RetrofitService;
 import com.example.hospitalapp.utils.DateUtils;
@@ -40,6 +44,7 @@ public class PatientsActivity extends AppCompatActivity {
     private Button addButton, searchButton;
     private EditText searchField;
     private PatientsApi patientsApi;
+    private AdmissionStateApi admissionStateApi;
     private PatientAdapter patientAdapter;
 
     @SuppressLint("MissingInflatedId")
@@ -75,10 +80,16 @@ public class PatientsActivity extends AppCompatActivity {
             public void onDeleteClick(PatientDto patientDto) {
                 showDeleteConfirmationDialog(patientDto);
             }
+
+            @Override
+            public void onDischargeClick(PatientDto patientDto) {
+                showDischargeDialog(patientDto);
+            }
         });
 
         RetrofitService retrofitService = new RetrofitService();
         patientsApi = retrofitService.getPatientsApi();
+        admissionStateApi = retrofitService.getAdmissionStateApi();
 
         searchField.addTextChangedListener(new TextWatcher() {
             @Override
@@ -107,7 +118,6 @@ public class PatientsActivity extends AppCompatActivity {
 
     private void loadPatients() {
         String searchQuery = searchField.getText().toString().trim();
-
         if (searchQuery.isEmpty()) {
             fetchAllPatients(); // Fetch all patients if search query is empty
         } else {
@@ -270,6 +280,58 @@ public class PatientsActivity extends AppCompatActivity {
         });
     }
 
+    private void showDischargeDialog(PatientDto patientDto) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        LayoutInflater inflater = this.getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_discharge, null);
+        builder.setView(dialogView);
+
+        Spinner spinnerDischargeReason = dialogView.findViewById(R.id.spinnerDischargeReason);
+        Button buttonConfirmDischarge = dialogView.findViewById(R.id.buttonConfirmDischarge);
+        Button buttonCancelDischarge = dialogView.findViewById(R.id.buttonCancelDischarge);
+
+        // Set up spinner with discharge reasons (example data)
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+                R.array.discharge_reasons, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerDischargeReason.setAdapter(adapter);
+
+        AlertDialog dialog = builder.create();
+
+        buttonConfirmDischarge.setOnClickListener(v -> {
+            String selectedReason = (String) spinnerDischargeReason.getSelectedItem();
+            // Perform discharge operation with selected reason
+            dischargePatient(patientDto, selectedReason);
+            dialog.dismiss();
+        });
+
+        buttonCancelDischarge.setOnClickListener(v -> dialog.dismiss());
+
+        dialog.show();
+    }
+
+    private void dischargePatient(PatientDto patientDto, String selectedReason) {
+        DischargeReasonDto dischargeReasonDto = new DischargeReasonDto(patientDto.getId(), selectedReason);
+
+        Call<String> call = admissionStateApi.setDischargeReason(dischargeReasonDto);
+        call.enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                if (response.isSuccessful()) {
+                    Toast.makeText(PatientsActivity.this, response.body(), Toast.LENGTH_SHORT).show();
+                    loadPatients(); // Refresh the list after successful discharge
+                } else {
+                    Toast.makeText(PatientsActivity.this, "Failed to discharge patient", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                Toast.makeText(PatientsActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
     private void savePatient(PatientDto patientDto) {
         Call<String> call = patientsApi.savePatient(patientDto);
         call.enqueue(new Callback<String>() {
@@ -295,3 +357,4 @@ public class PatientsActivity extends AppCompatActivity {
         patientAdapter.setData(patientDtos);
     }
 }
+
