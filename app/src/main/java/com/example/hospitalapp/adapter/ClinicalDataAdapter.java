@@ -78,12 +78,12 @@ public class ClinicalDataAdapter extends RecyclerView.Adapter<ClinicalDataHolder
 
     public static class ClinicalDataViewHolder extends RecyclerView.ViewHolder {
         public TextView clinicalRecord;
-        public Button editButton, delteButton;
+        public Button editButton, deleteButton;
         public ClinicalDataViewHolder(@NonNull View itemView) {
             super(itemView);
             clinicalRecord = itemView.findViewById(R.id.clinicalRecordItem);
             editButton = itemView.findViewById(R.id.editButton_clinicalRecord);
-            delteButton = itemView.findViewById(R.id.deleteButton_clinicalRecord);
+            deleteButton = itemView.findViewById(R.id.deleteButton_clinicalRecord);
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.example.hospitalapp;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -8,6 +9,8 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -20,6 +23,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.hospitalapp.adapter.ClinicalDataAdapter;
 import com.example.hospitalapp.dto.ClinicalDataDto;
 import com.example.hospitalapp.dto.LongDto;
+import com.example.hospitalapp.dto.PatientDto;
 import com.example.hospitalapp.retrofit.ClinicalDataApi;
 import com.example.hospitalapp.retrofit.RetrofitService;
 
@@ -33,10 +37,16 @@ import retrofit2.Response;
 public class ClinicalRecordsActivity extends AppCompatActivity {
     private static final String TAG = "ClinicalDataActivity";
     private RecyclerView recyclerView;
-    private Button searchButton, addButton;
+    private Button searchButton, addButton, backButton;
     private EditText searchField;
+    private TextView patientsName;
     private ClinicalDataApi clinicalDataApi;
     private ClinicalDataAdapter clinicalDataAdapter;
+    private String patientName;
+    private Long selectedPatientId;
+    private Long selectedDepartmentId;
+    private Long selectedAdmissionStateId;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,68 +56,94 @@ public class ClinicalRecordsActivity extends AppCompatActivity {
         searchField = findViewById(R.id.searchField_clinicalRecord);
         searchButton = findViewById(R.id.searchButton_clinicalRecord);
         addButton = findViewById(R.id.addButton_clinicalRecord);
+        backButton = findViewById(R.id.backButton_clinicalRecord);
+        patientsName = findViewById(R.id.patientsName_clinicalRecord);
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         clinicalDataAdapter = new ClinicalDataAdapter(new ArrayList<>());
         recyclerView.setAdapter(clinicalDataAdapter);
+
+        RetrofitService retrofitService = new RetrofitService();
+        clinicalDataApi = retrofitService.getClinicalDataApi();
+        if (clinicalDataApi == null) {
+            Log.e(TAG, "ClinicalDataApi instance is null. Unable to make API calls.");
+            return;
+        }
+
+        // Retrieve the patient's name from the intent extras
+        Intent intent = getIntent();
+        if (intent != null) {
+            selectedPatientId = intent.getLongExtra("PATIENT_ID", -1); // -1 is default value if not found
+            patientName = intent.getStringExtra("PATIENT_NAME");
+            if (patientName != null) {
+                patientsName.setText(patientName);
+                PatientDto patientDto = new PatientDto(selectedPatientId, patientName);
+                loadClinicalData(patientDto);
+            }
+        }
 
         clinicalDataAdapter.setOnItemClickListener(new ClinicalDataAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(ClinicalDataDto clinicalDataDto) {
 
             }
-
             @Override
             public void onEditClick(ClinicalDataDto clinicalDataDto) {
                 showClinicalDataDialog(clinicalDataDto);
             }
-
             @Override
             public void onDeleteClick(ClinicalDataDto clinicalDataDto) {
-                showDeleteConfirmationDialog(clinicalDataDto);
+                showDeleteConfirmationDialog(clinicalDataDto, new PatientDto());
             }
         });
 
-        RetrofitService retrofitService = new RetrofitService();
-        clinicalDataApi = retrofitService.getClinicalDataApi();
-
-        searchButton.setOnClickListener(v -> loadClinicalData());
         addButton.setOnClickListener(v -> showClinicalDataDialog(null));
 
-        loadClinicalData();
+        searchButton.setOnClickListener(v -> {
+            String clinicalRecord = searchField.getText().toString().trim();
+            if (clinicalRecord.isEmpty()) {
+                loadClinicalData(new PatientDto(patientName));
+            } else {
+                Log.d(TAG, "Clinical Record: " + clinicalRecord);
+                searchClinicalRecord(clinicalRecord);
+            }
+        });
+
+        backButton.setOnClickListener(v -> finish());
     }
 
-    private void loadClinicalData() {
+    private void loadClinicalData(PatientDto patientDto) {
         String clinicalRecord = searchField.getText().toString();
         if (clinicalRecord.isEmpty()) {
-            fetchAllDepartments();
+            fetchClinicalRecords(patientDto);
         } else {
             Log.d(TAG, "Clinical Record: " + clinicalRecord);
             searchClinicalRecord(clinicalRecord);
         }
     }
 
-    private void fetchAllDepartments() {
+    private void fetchClinicalRecords(PatientDto patientDto) {
         Log.d(TAG, "Fetching all clinical records..");
-        clinicalDataApi.getAllClinicalRecords()
+        clinicalDataApi.getClinicalRecordsByPatientName(patientDto)
                 .enqueue(new Callback<List<ClinicalDataDto>>() {
                     @Override
                     public void onResponse(Call<List<ClinicalDataDto>> call, Response<List<ClinicalDataDto>> response) {
                         if (response.isSuccessful() && response.body() != null) {
-                            Log.d(TAG, "All clinical records fetched successfully!");
+                            Log.d(TAG, "The Clinical Records fetched successfully!");
                             populateClinicalData(response.body());
                         } else {
-                            Log.e(TAG, "Failed to fetch all clinical records! Code: " + response.code());
+                            Log.e(TAG, "Failed to fetch the Clinical Records! Code: " + response.code());
                         }
                     }
 
                     @Override
                     public void onFailure(Call<List<ClinicalDataDto>> call, Throwable t) {
-                        Log.e(TAG, "Failed to fetch all clinical records!", t);
+                        Log.e(TAG, "Failed to fetch the Clinical Records!", t);
                         Toast.makeText(ClinicalRecordsActivity.this, "Failed to load Clinical Records", Toast.LENGTH_SHORT).show();
                     }
                 });
     }
+
     private void searchClinicalRecord(String clinicalRecord) {
         ClinicalDataDto clinicalDataDto = new ClinicalDataDto();
         clinicalDataDto.setClinicalRecord(clinicalRecord);
@@ -166,8 +202,16 @@ public class ClinicalRecordsActivity extends AppCompatActivity {
                 if (!text.isEmpty()) {
                     if (clinicalDataDto != null) {
                         clinicalDataDto.setClinicalRecord(text);
+                        clinicalDataDto.setPatientId(selectedPatientId);
+                        clinicalDataDto.setDepartmentId(clinicalDataDto.getDepartmentId());
+                        clinicalDataDto.setAdmissionStateId(clinicalDataDto.getAdmissionStateId());
                         saveClinicalData(clinicalDataDto);
                     } else {
+                        ClinicalDataDto newClinicalData = new ClinicalDataDto();
+                        newClinicalData.setClinicalRecord(text);
+                        newClinicalData.setPatientId(selectedPatientId);
+                        newClinicalData.setDepartmentId(clinicalDataDto.getDepartmentId());
+                        newClinicalData.setAdmissionStateId(clinicalDataDto.getAdmissionStateId());
                         saveClinicalData(new ClinicalDataDto(text));
                     }
                     dialog.dismiss();
@@ -199,16 +243,16 @@ public class ClinicalRecordsActivity extends AppCompatActivity {
         imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 
-    private void showDeleteConfirmationDialog(ClinicalDataDto clinicalDataDto) {
+    private void showDeleteConfirmationDialog(ClinicalDataDto clinicalDataDto, PatientDto patientDto) {
         new AlertDialog.Builder(this)
                 .setTitle("Confirm deletion")
                 .setMessage("Do you confirm deletion?")
-                .setPositiveButton("Confirm", ((dialog, which) -> deleteClinicalData(clinicalDataDto)))
+                .setPositiveButton("Confirm", ((dialog, which) -> deleteClinicalData(clinicalDataDto, patientDto)))
                 .setNegativeButton("Cancel", null)
                 .show();
     }
 
-    private void deleteClinicalData(ClinicalDataDto clinicalDataDto) {
+    private void deleteClinicalData(ClinicalDataDto clinicalDataDto, PatientDto patientDto) {
         LongDto longDto = new LongDto();
         longDto.setId(clinicalDataDto.getId());
 
@@ -219,7 +263,7 @@ public class ClinicalRecordsActivity extends AppCompatActivity {
             public void onResponse(Call<String> call, Response<String> response) {
                 if (response.isSuccessful()) {
                     Toast.makeText(ClinicalRecordsActivity.this, "Clinical Record deleted successfully!", Toast.LENGTH_SHORT).show();
-                    loadClinicalData();
+                    loadClinicalData(new PatientDto(selectedPatientId, patientName));
                 } else {
                     Toast.makeText(ClinicalRecordsActivity.this, "Failed to delete Clinical Record!", Toast.LENGTH_SHORT).show();
                 }
@@ -240,6 +284,7 @@ public class ClinicalRecordsActivity extends AppCompatActivity {
             public void onResponse(Call<String> call, Response<String> response) {
                 if (response.isSuccessful()) {
                     Toast.makeText(ClinicalRecordsActivity.this, response.body(), Toast.LENGTH_SHORT).show();
+                    loadClinicalData(new PatientDto(selectedPatientId, patientName));
                 } else {
                     Toast.makeText(ClinicalRecordsActivity.this, "Failed to add clinical record", Toast.LENGTH_SHORT).show();
                 }

@@ -11,6 +11,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.hospitalapp.AdmissionsManagementActivity;
 import com.example.hospitalapp.ClinicalRecordsActivity;
 import com.example.hospitalapp.R;
 import com.example.hospitalapp.dto.PatientDto;
@@ -88,6 +89,13 @@ public class PatientAdapter extends RecyclerView.Adapter<PatientHolder> {
             if (listener != null) {
                 listener.onDischargeClick(patientDto);
             }
+        });
+
+        holder.nextButton.setOnClickListener(v -> {
+            Intent intent = new Intent(context, AdmissionsManagementActivity.class);
+            intent.putExtra("PATIENT_ID", patientDto.getId());
+            intent.putExtra("PATIENT_NAME", patientDto.getFirstName() + " " + patientDto.getLastName());
+            context.startActivity(intent);
         });
 
         holder.itemView.setOnClickListener(v -> {

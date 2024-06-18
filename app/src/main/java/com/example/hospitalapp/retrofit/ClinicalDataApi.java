@@ -1,6 +1,7 @@
 package com.example.hospitalapp.retrofit;
 
 import com.example.hospitalapp.dto.ClinicalDataDto;
+import com.example.hospitalapp.dto.PatientDto;
 
 import java.util.List;
 
@@ -19,4 +20,6 @@ public interface ClinicalDataApi {
     Call<String> deleteClinicalRecord(@Body ClinicalDataDto clinicalDataDto);
     @GET("/api/getAllClinicalRecords")
     Call<List<ClinicalDataDto>> getAllClinicalRecords();
+    @POST("/api/getClinicalRecordsByPatientName")
+    Call<List<ClinicalDataDto>> getClinicalRecordsByPatientName(@Body PatientDto patientDto);
 }

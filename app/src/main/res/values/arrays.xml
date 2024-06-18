@@ -1,3 +1,9 @@
-<?xml version="1.0" encoding="utf-8"?>
+<!-- res/values/arrays.xml -->
 <resources>
+    <string-array name="discharge_reasons">
+        <item>Healthy</item>
+        <item>Transfer</item>
+        <item>Death</item>
+        <!-- Add more discharge reasons if needed -->
+    </string-array>
 </resources>

@@ -22,6 +22,8 @@ import com.example.hospitalapp.dto.FilterDto;
 import com.example.hospitalapp.dto.StringDto;
 import com.example.hospitalapp.retrofit.DepartmentApi;
 import com.example.hospitalapp.retrofit.RetrofitService;
+import com.example.hospitalapp.utils.DepartmentAdapterInterface;
+import com.example.hospitalapp.utils.DepartmentUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,13 +32,14 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class DepartmentActivity extends AppCompatActivity {
+public class DepartmentActivity extends AppCompatActivity implements DepartmentAdapterInterface {
     private static final String TAG = "DepartmentActivity";
     private RecyclerView recyclerView;
     private Button searchButton, addButton;
     private EditText searchField;
     private DepartmentApi departmentApi;
     private DepartmentAdapter departmentAdapter;
+    private DepartmentUtils departmentUtils;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +74,8 @@ public class DepartmentActivity extends AppCompatActivity {
         RetrofitService retrofitService = new RetrofitService();
         departmentApi = retrofitService.getDepartmentApi();
 
+        departmentUtils = new DepartmentUtils();
+
         searchButton.setOnClickListener(v -> loadDepartments());
         addButton.setOnClickListener(v -> showDepartmentDialog(null));
 
@@ -78,13 +83,8 @@ public class DepartmentActivity extends AppCompatActivity {
     }
 
     private void loadDepartments() {
-        String departmentName = searchField.getText().toString().trim();
-        if (departmentName.isEmpty()) {
-            fetchAllDepartments();
-        } else {
-            Log.d(TAG, "Department Name: " + departmentName);
-            searchDepartments(departmentName);
-        }
+        String searchQuery = searchField.getText().toString().trim();
+        departmentUtils.loadDepartments(this, departmentApi, searchQuery, this);
     }
 
     private void fetchAllDepartments() {
@@ -239,6 +239,11 @@ public class DepartmentActivity extends AppCompatActivity {
     }
 
     private void populateDepartment(List<DepartmentDto> departmentDtoList) {
+        departmentAdapter.setData(departmentDtoList);
+    }
+
+    @Override
+    public void setData(List<DepartmentDto> departmentDtoList) {
         departmentAdapter.setData(departmentDtoList);
     }
 }

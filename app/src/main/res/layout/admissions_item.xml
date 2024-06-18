@@ -1,6 +1,67 @@
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent">
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <!-- Department Name Title -->
+    <TextView
+        android:id="@+id/departmentNameTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Department Name:"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginTop="4dp" />
+
+    <!-- Department Name TextView -->
+    <TextView
+        android:id="@+id/departmentItem_nameAdmission"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:layout_below="@id/departmentNameTitle"
+        android:layout_marginTop="4dp" />
+
+    <!-- Department Code Title -->
+    <TextView
+        android:id="@+id/departmentCodeTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Department Code:"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_below="@id/departmentItem_nameAdmission"
+        android:layout_marginTop="12dp" />
+
+    <!-- Department Code TextView -->
+    <TextView
+        android:id="@+id/departmentItem_codeAdmission"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:layout_below="@id/departmentCodeTitle"
+        android:layout_marginTop="4dp" />
+
+    <Button
+        android:id="@+id/admitButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Admit"
+        android:backgroundTint="#008787"
+        android:textColor="@color/white"
+        android:layout_alignTop="@id/departmentNameTitle"
+        android:layout_alignParentEnd="true"
+        android:padding="8dp" />
+
+    <Button
+        android:id="@+id/moveToButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Move To"
+        android:backgroundTint="#008787"
+        android:textColor="@color/white"
+        android:layout_alignTop="@id/departmentCodeTitle"
+        android:layout_alignParentEnd="true"
+        android:padding="8dp" />
+
+</RelativeLayout>
