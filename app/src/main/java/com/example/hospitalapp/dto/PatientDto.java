@@ -12,6 +12,18 @@ public class PatientDto {
     private String lastName;
     @JsonAdapter(LocalDateAdapter.class)
     private LocalDate birthDate;
+    private Long departmentId;
+    private Long admissionStateId;
+
+    public PatientDto(Long id, String firstName, String lastName, LocalDate birthDate,
+                      Long departmentId, Long admissionStateId) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.birthDate = birthDate;
+        this.departmentId = departmentId;
+        this.admissionStateId = admissionStateId;
+    }
 
     public PatientDto(Patient p) {
         id = p.getId();
@@ -87,6 +99,22 @@ public class PatientDto {
 
     public void setBirthDate(LocalDate birthDate) {
         this.birthDate = birthDate;
+    }
+
+    public Long getDepartmentId() {
+        return departmentId;
+    }
+
+    public void setDepartmentId(Long departmentId) {
+        this.departmentId = departmentId;
+    }
+
+    public Long getAdmissionStateId() {
+        return admissionStateId;
+    }
+
+    public void setAdmissionStateId(Long admissionStateId) {
+        this.admissionStateId = admissionStateId;
     }
 
     @Override

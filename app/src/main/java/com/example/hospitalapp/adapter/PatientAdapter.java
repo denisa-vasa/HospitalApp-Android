@@ -2,6 +2,7 @@ package com.example.hospitalapp.adapter;
 
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -59,12 +60,17 @@ public class PatientAdapter extends RecyclerView.Adapter<PatientHolder> {
     @Override
     public void onBindViewHolder(@NonNull PatientHolder holder, int position) {
         PatientDto patientDto = patientDtoList.get(position);
+
         holder.firstName.setText(patientDto.getFirstName());
         holder.lastName.setText(patientDto.getLastName());
         LocalDate birthDate = patientDto.getBirthDate();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        String formattedDate = birthDate.format(formatter);
-        holder.birthDate.setText(formattedDate);
+        if (birthDate != null) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            String formattedDate = birthDate.format(formatter);
+            holder.birthDate.setText(formattedDate);
+        } else {
+            holder.birthDate.setText(""); // or any placeholder text
+        }
 
         holder.editButton.setOnClickListener(v -> {
             if (listener != null) {
@@ -82,6 +88,8 @@ public class PatientAdapter extends RecyclerView.Adapter<PatientHolder> {
             Intent intent = new Intent(context, ClinicalRecordsActivity.class);
             intent.putExtra("PATIENT_ID", patientDto.getId());
             intent.putExtra("PATIENT_NAME", patientDto.getFirstName() + " " + patientDto.getLastName());
+            //intent.putExtra("DEPARTMENT_ID", patientDto.getDepartmentId());  // Add this line
+           // intent.putExtra("ADMISSION_STATE_ID", patientDto.getAdmissionStateId());  // Add this line
             context.startActivity(intent);
         });
 

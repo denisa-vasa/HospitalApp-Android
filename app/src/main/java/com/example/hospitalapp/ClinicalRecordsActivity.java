@@ -25,6 +25,7 @@ import com.example.hospitalapp.dto.ClinicalDataDto;
 import com.example.hospitalapp.dto.LongDto;
 import com.example.hospitalapp.dto.PatientDto;
 import com.example.hospitalapp.retrofit.ClinicalDataApi;
+import com.example.hospitalapp.retrofit.PatientsApi;
 import com.example.hospitalapp.retrofit.RetrofitService;
 
 import java.util.ArrayList;
@@ -41,6 +42,7 @@ public class ClinicalRecordsActivity extends AppCompatActivity {
     private EditText searchField;
     private TextView patientsName;
     private ClinicalDataApi clinicalDataApi;
+    private PatientsApi patientsApi;
     private ClinicalDataAdapter clinicalDataAdapter;
     private String patientName;
     private Long selectedPatientId;
@@ -65,6 +67,7 @@ public class ClinicalRecordsActivity extends AppCompatActivity {
 
         RetrofitService retrofitService = new RetrofitService();
         clinicalDataApi = retrofitService.getClinicalDataApi();
+        patientsApi = retrofitService.getPatientsApi();
         if (clinicalDataApi == null) {
             Log.e(TAG, "ClinicalDataApi instance is null. Unable to make API calls.");
             return;
@@ -73,12 +76,20 @@ public class ClinicalRecordsActivity extends AppCompatActivity {
         // Retrieve the patient's name from the intent extras
         Intent intent = getIntent();
         if (intent != null) {
-            selectedPatientId = intent.getLongExtra("PATIENT_ID", -1); // -1 is default value if not found
+            selectedPatientId = intent.getLongExtra("PATIENT_ID", 0L);
             patientName = intent.getStringExtra("PATIENT_NAME");
+
             if (patientName != null) {
                 patientsName.setText(patientName);
                 PatientDto patientDto = new PatientDto(selectedPatientId, patientName);
                 loadClinicalData(patientDto);
+            }
+
+            if (selectedPatientId != null && selectedPatientId > 0) {
+                // Fetch patient details using selectedPatientId
+                fetchPatientById(selectedPatientId);
+            } else {
+                Log.e(TAG, "Invalid patient ID: " + selectedPatientId);
             }
         }
 
@@ -110,6 +121,34 @@ public class ClinicalRecordsActivity extends AppCompatActivity {
         });
 
         backButton.setOnClickListener(v -> finish());
+    }
+
+    private void fetchPatientById(Long selectedPatientId) {
+        LongDto longDto = new LongDto();
+        longDto.setId(selectedPatientId);
+
+        patientsApi.getPatientById(longDto).enqueue(new Callback<PatientDto>() {
+            @Override
+            public void onResponse(Call<PatientDto> call, Response<PatientDto> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    PatientDto patientDto = response.body();
+                    Log.d(TAG, "Patient fetched successfully: " + patientDto.getFirstName() + patientDto.getLastName());
+                    selectedDepartmentId = patientDto.getDepartmentId(); // Assuming PatientDto contains these fields
+                    selectedAdmissionStateId = patientDto.getAdmissionStateId(); // Assuming PatientDto contains these fields
+                    // Do something with the patient data, e.g., update UI or load clinical data
+                    loadClinicalData(patientDto);
+                } else {
+                    Log.e(TAG, "Failed to fetch patient details. Code: " + response.code());
+                    Toast.makeText(ClinicalRecordsActivity.this, "Failed to fetch patient details", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<PatientDto> call, Throwable t) {
+                Log.e(TAG, "Failed to fetch patient details", t);
+                Toast.makeText(ClinicalRecordsActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void loadClinicalData(PatientDto patientDto) {
@@ -203,16 +242,16 @@ public class ClinicalRecordsActivity extends AppCompatActivity {
                     if (clinicalDataDto != null) {
                         clinicalDataDto.setClinicalRecord(text);
                         clinicalDataDto.setPatientId(selectedPatientId);
-                        clinicalDataDto.setDepartmentId(clinicalDataDto.getDepartmentId());
-                        clinicalDataDto.setAdmissionStateId(clinicalDataDto.getAdmissionStateId());
+                        clinicalDataDto.setDepartmentId(selectedDepartmentId);
+                        clinicalDataDto.setAdmissionStateId(selectedAdmissionStateId);
                         saveClinicalData(clinicalDataDto);
                     } else {
                         ClinicalDataDto newClinicalData = new ClinicalDataDto();
                         newClinicalData.setClinicalRecord(text);
                         newClinicalData.setPatientId(selectedPatientId);
-                        newClinicalData.setDepartmentId(clinicalDataDto.getDepartmentId());
-                        newClinicalData.setAdmissionStateId(clinicalDataDto.getAdmissionStateId());
-                        saveClinicalData(new ClinicalDataDto(text));
+                        newClinicalData.setDepartmentId(selectedDepartmentId);
+                        newClinicalData.setAdmissionStateId(selectedAdmissionStateId);
+                        saveClinicalData(newClinicalData);
                     }
                     dialog.dismiss();
                 } else {
@@ -300,5 +339,4 @@ public class ClinicalRecordsActivity extends AppCompatActivity {
     private void populateClinicalData(List<ClinicalDataDto> clinicalDataDtoList) {
         clinicalDataAdapter.setData(clinicalDataDtoList);
     }
-
 }

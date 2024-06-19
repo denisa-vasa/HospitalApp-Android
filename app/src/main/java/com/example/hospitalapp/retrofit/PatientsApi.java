@@ -1,5 +1,6 @@
 package com.example.hospitalapp.retrofit;
 
+import com.example.hospitalapp.dto.LongDto;
 import com.example.hospitalapp.dto.PatientDto;
 
 import java.util.List;
@@ -22,4 +23,6 @@ public interface PatientsApi {
 
     @GET("/api/getAllPatients")
     Call<List<PatientDto>> getAllPatients();
+    @POST("/api/getPatientById")
+    Call<PatientDto> getPatientById(@Body LongDto longDto);
 }

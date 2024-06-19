@@ -10,11 +10,9 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.hospitalapp.AdmissionsManagementActivity;
 import com.example.hospitalapp.R;
 import com.example.hospitalapp.dto.DepartmentDto;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class AdmissionsManagementAdapter extends RecyclerView.Adapter<AdmissionsManagementAdapter.AdmissionsViewHolder> {
@@ -22,13 +20,9 @@ public class AdmissionsManagementAdapter extends RecyclerView.Adapter<Admissions
     private OnItemClickListener listener;
     private Context context;
 
-    public AdmissionsManagementAdapter(List<DepartmentDto> departmentDtoList) {
-        this.departmentDtoList = departmentDtoList;
-    }
-
     public AdmissionsManagementAdapter(Context context, List<DepartmentDto> departmentDtoList) {
         this.context = context;
-        departmentDtoList = departmentDtoList;
+        this.departmentDtoList = departmentDtoList;
     }
 
     public void setData(List<DepartmentDto> newData) {
