@@ -7,8 +7,10 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -21,7 +23,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.hospitalapp.R;
 import com.example.hospitalapp.activities.PatientsActivity;
 import com.example.hospitalapp.adapter.PatientAdapter;
+import com.example.hospitalapp.dto.DischargeReasonDto;
 import com.example.hospitalapp.dto.PatientDto;
+import com.example.hospitalapp.retrofit.AdmissionStateApi;
 import com.example.hospitalapp.retrofit.PatientsApi;
 import com.example.hospitalapp.retrofit.RetrofitService;
 import com.example.hospitalapp.utils.DateUtils;
@@ -43,6 +47,7 @@ public class PatientFragment extends Fragment {
     private EditText searchField;
     private PatientsApi patientsApi;
     private PatientAdapter patientAdapter;
+    private AdmissionStateApi admissionStateApi;
 
     public PatientFragment() {
         // Required empty public constructor
@@ -63,8 +68,30 @@ public class PatientFragment extends Fragment {
         patientAdapter = new PatientAdapter(requireContext(), new ArrayList<>());
         recyclerView.setAdapter(patientAdapter);
 
+        patientAdapter.setOnItemClickListener(new PatientAdapter.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(PatientDto patientDto) {
+
+            }
+            @Override
+            public void onEditClick(PatientDto patientDto) {
+                showPatientDialog(patientDto);
+            }
+            @Override
+            public void onDeleteClick(PatientDto patientDto) {
+                showDeleteConfirmationDialog(patientDto);
+            }
+
+            @Override
+            public void onDischargeClick(PatientDto patientDto) {
+                showDischargeDialog(patientDto);
+            }
+        });
+
         RetrofitService retrofitService = new RetrofitService();
         patientsApi = retrofitService.getPatientsApi();
+        admissionStateApi = retrofitService.getAdmissionStateApi();
 
         searchField.addTextChangedListener(new TextWatcher() {
             @Override
@@ -224,6 +251,89 @@ public class PatientFragment extends Fragment {
         });
 
         dialog.show();
+    }
+
+    private void showDeleteConfirmationDialog(PatientDto patientDto) {
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Confirm Deletion")
+                .setMessage("Do you confirm deletion?")
+                .setPositiveButton("Confirm", ((dialog, which) -> deletePatient(patientDto)))
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void deletePatient(PatientDto patientDto) {
+        PatientDto ptDto = new PatientDto(patientDto.getFirstName(), patientDto.getLastName());
+
+        Call<String> call = patientsApi.deletePatient(ptDto);
+        call.enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                if (response.isSuccessful()) {
+                    Toast.makeText(requireContext(), "Patient deleted successfully", Toast.LENGTH_SHORT).show();
+                    loadPatients(); // Refresh the list
+                } else {
+                    Toast.makeText(requireContext(), "Failed to delete patient", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                Toast.makeText(requireContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void showDischargeDialog(PatientDto patientDto) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        LayoutInflater inflater = this.getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_discharge, null);
+        builder.setView(dialogView);
+
+        Spinner spinnerDischargeReason = dialogView.findViewById(R.id.spinnerDischargeReason);
+        Button buttonConfirmDischarge = dialogView.findViewById(R.id.buttonConfirmDischarge);
+        Button buttonCancelDischarge = dialogView.findViewById(R.id.buttonCancelDischarge);
+
+        // Set up spinner with discharge reasons (example data)
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(requireContext(),
+                R.array.discharge_reasons, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerDischargeReason.setAdapter(adapter);
+
+        AlertDialog dialog = builder.create();
+
+        buttonConfirmDischarge.setOnClickListener(v -> {
+            String selectedReason = (String) spinnerDischargeReason.getSelectedItem();
+            // Perform discharge operation with selected reason
+            dischargePatient(patientDto, selectedReason);
+            dialog.dismiss();
+        });
+
+        buttonCancelDischarge.setOnClickListener(v -> dialog.dismiss());
+
+        dialog.show();
+    }
+
+    private void dischargePatient(PatientDto patientDto, String selectedReason) {
+        DischargeReasonDto dischargeReasonDto = new DischargeReasonDto(patientDto.getId(), selectedReason);
+
+        Call<String> call = admissionStateApi.setDischargeReason(dischargeReasonDto);
+        call.enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                if (response.isSuccessful()) {
+                    Toast.makeText(requireContext(), response.body(), Toast.LENGTH_SHORT).show();
+                    loadPatients(); // Refresh the list after successful discharge
+                } else {
+                    Toast.makeText(requireContext(), "Failed to discharge patient", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                Toast.makeText(requireContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void savePatient(PatientDto patientDto) {
