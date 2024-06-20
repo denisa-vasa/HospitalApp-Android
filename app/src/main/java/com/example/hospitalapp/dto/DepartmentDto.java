@@ -1,6 +1,6 @@
 package com.example.hospitalapp.dto;
 
-import com.example.hospitalmanagementsystem.model.Department;
+import com.example.hospitalapp.model.Department;
 
 public class DepartmentDto {
     private Long id;

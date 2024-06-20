@@ -1,4 +1,4 @@
-package com.example.hospitalapp;
+package com.example.hospitalapp.activities;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.hospitalapp.R;
 import com.example.hospitalapp.adapter.AdmissionsManagementAdapter;
 import com.example.hospitalapp.dto.AdmissionStateDto;
 import com.example.hospitalapp.dto.DepartmentDto;

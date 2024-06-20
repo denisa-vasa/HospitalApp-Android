@@ -1,21 +1,25 @@
-package com.example.hospitalapp;
+package com.example.hospitalapp.fragments;
 
+import android.content.Context;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.hospitalapp.R;
+import com.example.hospitalapp.activities.DepartmentActivity;
 import com.example.hospitalapp.adapter.DepartmentAdapter;
 import com.example.hospitalapp.dto.DepartmentDto;
 import com.example.hospitalapp.dto.FilterDto;
@@ -23,7 +27,6 @@ import com.example.hospitalapp.dto.StringDto;
 import com.example.hospitalapp.retrofit.DepartmentApi;
 import com.example.hospitalapp.retrofit.RetrofitService;
 import com.example.hospitalapp.utils.DepartmentAdapterInterface;
-import com.example.hospitalapp.utils.DepartmentUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,25 +35,29 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class DepartmentActivity extends AppCompatActivity implements DepartmentAdapterInterface {
-    private static final String TAG = "DepartmentActivity";
+public class DepartmentFragment extends Fragment {
+
+    private static final String TAG = "DepartmentFragment";
     private RecyclerView recyclerView;
     private Button searchButton, addButton;
     private EditText searchField;
     private DepartmentApi departmentApi;
     private DepartmentAdapter departmentAdapter;
-    private DepartmentUtils departmentUtils;
+    DepartmentFragment departmentUtils;
+    public DepartmentFragment() {
+        // Required empty public constructor
+    }
 
+    @Nullable
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_department);
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.activity_department, container, false);
 
-        searchField = findViewById(R.id.searchField);
-        searchButton = findViewById(R.id.searchButton);
-        addButton = findViewById(R.id.addButton);
-        recyclerView = findViewById(R.id.recyclerView);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        searchField = view.findViewById(R.id.searchField);
+        searchButton = view.findViewById(R.id.searchButton);
+        addButton = view.findViewById(R.id.addButton);
+        recyclerView = view.findViewById(R.id.recyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         departmentAdapter = new DepartmentAdapter(new ArrayList<>());
         recyclerView.setAdapter(departmentAdapter);
 
@@ -74,17 +81,22 @@ public class DepartmentActivity extends AppCompatActivity implements DepartmentA
         RetrofitService retrofitService = new RetrofitService();
         departmentApi = retrofitService.getDepartmentApi();
 
-        departmentUtils = new DepartmentUtils();
-
         searchButton.setOnClickListener(v -> loadDepartments());
         addButton.setOnClickListener(v -> showDepartmentDialog(null));
 
         loadDepartments();
+
+        return view;
     }
 
     private void loadDepartments() {
         String searchQuery = searchField.getText().toString().trim();
-        departmentUtils.loadDepartments(this, departmentApi, searchQuery, this);
+        if (searchQuery.isEmpty()) {
+            fetchAllDepartments();
+        } else {
+            Log.d(TAG, "Department Name: " + searchQuery);
+            searchDepartments(searchQuery);
+        }
     }
 
     private void fetchAllDepartments() {
@@ -98,14 +110,14 @@ public class DepartmentActivity extends AppCompatActivity implements DepartmentA
                             populateDepartment(response.body());
                         } else {
                             Log.e(TAG, "Failed to fetch all departments. Code: " + response.code());
-                            Toast.makeText(DepartmentActivity.this, "Failed to load Departments!", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(requireContext(), "Failed to load Departments!", Toast.LENGTH_SHORT).show();
                         }
                     }
 
                     @Override
                     public void onFailure(Call<List<DepartmentDto>> call, Throwable t) {
                         Log.e(TAG, "Failed to fetch all departments.", t);
-                        Toast.makeText(DepartmentActivity.this, "Failed to load Departments!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(requireContext(), "Failed to load Departments!", Toast.LENGTH_SHORT).show();
                     }
                 });
     }
@@ -125,7 +137,7 @@ public class DepartmentActivity extends AppCompatActivity implements DepartmentA
                             populateDepartment(response.body());
                         } else {
                             Log.e(TAG, "Response failed or body is null. Code: " + response.code());
-                            Toast.makeText(DepartmentActivity.this, "Failed to load Departments!", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(requireContext(), "Failed to load Departments!", Toast.LENGTH_SHORT).show();
                         }
 
                     }
@@ -133,13 +145,13 @@ public class DepartmentActivity extends AppCompatActivity implements DepartmentA
                     @Override
                     public void onFailure(Call<List<DepartmentDto>> call, Throwable t) {
                         Log.e(TAG, "onFailure called", t);
-                        Toast.makeText(DepartmentActivity.this, "Failed to load Departments!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(requireContext(), "Failed to load Departments!", Toast.LENGTH_SHORT).show();
                     }
                 });
     }
 
     private void showDepartmentDialog(@Nullable DepartmentDto departmentDto) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         LayoutInflater inflater = this.getLayoutInflater();
         View dialogView = inflater.inflate(R.layout.dialog_department, null);
         builder.setView(dialogView);
@@ -171,7 +183,7 @@ public class DepartmentActivity extends AppCompatActivity implements DepartmentA
                     }
                     dialog.dismiss();
                 } else {
-                    Toast.makeText(DepartmentActivity.this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), "Please fill all fields", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -187,7 +199,7 @@ public class DepartmentActivity extends AppCompatActivity implements DepartmentA
     }
 
     private void showDeleteConfirmationDialog(DepartmentDto departmentDto) {
-        new AlertDialog.Builder(this)
+        new AlertDialog.Builder(requireContext())
                 .setTitle("Confirm Deletion")
                 .setMessage("Do you confirm deletion?")
                 .setPositiveButton("Confirm", ((dialog, which) -> deleteDepartment(departmentDto)))
@@ -204,16 +216,16 @@ public class DepartmentActivity extends AppCompatActivity implements DepartmentA
             @Override
             public void onResponse(Call<String> call, Response<String> response) {
                 if (response.isSuccessful()) {
-                    Toast.makeText(DepartmentActivity.this, "Department deleted successfully", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), "Department deleted successfully", Toast.LENGTH_SHORT).show();
                     loadDepartments(); // Refresh the list
                 } else {
-                    Toast.makeText(DepartmentActivity.this, "Failed to delete department", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), "Failed to delete department", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<String> call, Throwable t) {
-                Toast.makeText(DepartmentActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -225,25 +237,20 @@ public class DepartmentActivity extends AppCompatActivity implements DepartmentA
             public void onResponse(Call<String> call, Response<String> response) {
                 if (response.isSuccessful()) {
                     String responseBody = response.body();
-                    Toast.makeText(DepartmentActivity.this, responseBody, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), responseBody, Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(DepartmentActivity.this, "Failed to add department", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), "Failed to add department", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<String> call, Throwable t) {
-                Toast.makeText(DepartmentActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
 
     private void populateDepartment(List<DepartmentDto> departmentDtoList) {
-        departmentAdapter.setData(departmentDtoList);
-    }
-
-    @Override
-    public void setData(List<DepartmentDto> departmentDtoList) {
         departmentAdapter.setData(departmentDtoList);
     }
 }

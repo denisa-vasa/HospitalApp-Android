@@ -1,4 +1,4 @@
-package com.example.hospitalmanagementsystem.model;
+package com.example.hospitalapp.model;
 
 public class Department {
     private Long id;

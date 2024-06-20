@@ -1,95 +1,70 @@
-package com.example.hospitalapp;
+package com.example.hospitalapp.fragments;
 
-import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.ArrayAdapter;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Spinner;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.hospitalapp.R;
+import com.example.hospitalapp.activities.PatientsActivity;
 import com.example.hospitalapp.adapter.PatientAdapter;
-import com.example.hospitalapp.dto.DischargeReasonDto;
 import com.example.hospitalapp.dto.PatientDto;
-import com.example.hospitalapp.retrofit.AdmissionStateApi;
 import com.example.hospitalapp.retrofit.PatientsApi;
 import com.example.hospitalapp.retrofit.RetrofitService;
 import com.example.hospitalapp.utils.DateUtils;
-import com.jakewharton.threetenabp.AndroidThreeTen;
+
+import org.threeten.bp.LocalDate;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.threeten.bp.LocalDate;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class PatientsActivity extends AppCompatActivity {
+public class PatientFragment extends Fragment {
 
-    private static final String TAG = "PatientsActivity";
+    private static final String TAG = "PatientFragment";
     private RecyclerView recyclerView;
     private Button addButton, searchButton;
     private EditText searchField;
     private PatientsApi patientsApi;
-    private AdmissionStateApi admissionStateApi;
     private PatientAdapter patientAdapter;
 
-    @SuppressLint("MissingInflatedId")
+    public PatientFragment() {
+        // Required empty public constructor
+    }
+
+    @Nullable
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        Log.d("PatientsActivity", "onCreate called");
-        AndroidThreeTen.init(this);
-        EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_patients);
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.activity_patients, container, false);
 
-        recyclerView = findViewById(R.id.recyclerView);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView = view.findViewById(R.id.recyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
 
-        searchField = findViewById(R.id.searchField_Patients);
-        searchButton = findViewById(R.id.searchPatientsButton);
-        addButton = findViewById(R.id.addPatientsButton);
+        searchField = view.findViewById(R.id.searchField_Patients);
+        searchButton = view.findViewById(R.id.searchPatientsButton);
+        addButton = view.findViewById(R.id.addPatientsButton);
 
-        patientAdapter = new PatientAdapter(this, new ArrayList<>());
+        patientAdapter = new PatientAdapter(requireContext(), new ArrayList<>());
         recyclerView.setAdapter(patientAdapter);
-
-        patientAdapter.setOnItemClickListener(new PatientAdapter.OnItemClickListener() {
-
-            @Override
-            public void onItemClick(PatientDto patientDto) {
-
-            }
-            @Override
-            public void onEditClick(PatientDto patientDto) {
-                showPatientDialog(patientDto);
-            }
-            @Override
-            public void onDeleteClick(PatientDto patientDto) {
-                showDeleteConfirmationDialog(patientDto);
-            }
-
-            @Override
-            public void onDischargeClick(PatientDto patientDto) {
-                showDischargeDialog(patientDto);
-            }
-        });
 
         RetrofitService retrofitService = new RetrofitService();
         patientsApi = retrofitService.getPatientsApi();
-        admissionStateApi = retrofitService.getAdmissionStateApi();
 
         searchField.addTextChangedListener(new TextWatcher() {
             @Override
@@ -114,6 +89,8 @@ public class PatientsActivity extends AppCompatActivity {
         addButton.setOnClickListener(v -> showPatientDialog(null));
 
         loadPatients();
+
+        return view;
     }
 
     private void loadPatients() {
@@ -148,14 +125,14 @@ public class PatientsActivity extends AppCompatActivity {
                             populatePatients(response.body());
                         } else {
                             Log.e(TAG, "Failed tp fetch al patients, Code: " + response.code());
-                            Toast.makeText(PatientsActivity.this, "Failed to load Patients!", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(requireContext(), "Failed to load Patients!", Toast.LENGTH_SHORT).show();
                         }
                     }
 
                     @Override
                     public void onFailure(Call<List<PatientDto>> call, Throwable t) {
                         Log.e(TAG, "Failed to fetch all departments.", t);
-                        Toast.makeText(PatientsActivity.this, "Failed to load Patients!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(requireContext(), "Failed to load Patients!", Toast.LENGTH_SHORT).show();
                     }
                 });
     }
@@ -174,20 +151,20 @@ public class PatientsActivity extends AppCompatActivity {
                             populatePatients(response.body());
                         } else {
                             Log.e(TAG, "Response failed or body is null. Code: " + response.code());
-                            Toast.makeText(PatientsActivity.this, "Failed to load Patients!", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(requireContext(), "Failed to load Patients!", Toast.LENGTH_SHORT).show();
                         }
                     }
 
                     @Override
                     public void onFailure(Call<List<PatientDto>> call, Throwable t) {
                         Log.e(TAG, "onFailure called", t);
-                        Toast.makeText(PatientsActivity.this, "Failed to load Patients!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(requireContext(), "Failed to load Patients!", Toast.LENGTH_SHORT).show();
                     }
                 });
     }
 
     private void showPatientDialog(@Nullable PatientDto patientDto) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         LayoutInflater inflater = this.getLayoutInflater();
         View dialogView = inflater.inflate(R.layout.dialog_patient, null);
         builder.setView(dialogView);
@@ -234,7 +211,7 @@ public class PatientsActivity extends AppCompatActivity {
                     // Dismiss the dialog after successful save
                     dialog.dismiss();
                 } else {
-                    Toast.makeText(PatientsActivity.this, "All fields are required", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), "All fields are required", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -249,112 +226,28 @@ public class PatientsActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    private void showDeleteConfirmationDialog(PatientDto patientDto) {
-        new AlertDialog.Builder(this)
-                .setTitle("Confirm Deletion")
-                .setMessage("Do you confirm deletion?")
-                .setPositiveButton("Confirm", ((dialog, which) -> deletePatient(patientDto)))
-                .setNegativeButton("Cancel", null)
-                .show();
-    }
-
-    private void deletePatient(PatientDto patientDto) {
-        PatientDto ptDto = new PatientDto(patientDto.getFirstName(), patientDto.getLastName());
-
-        Call<String> call = patientsApi.deletePatient(ptDto);
-        call.enqueue(new Callback<String>() {
-            @Override
-            public void onResponse(Call<String> call, Response<String> response) {
-                if (response.isSuccessful()) {
-                    Toast.makeText(PatientsActivity.this, "Patient deleted successfully", Toast.LENGTH_SHORT).show();
-                    loadPatients(); // Refresh the list
-                } else {
-                    Toast.makeText(PatientsActivity.this, "Failed to delete patient", Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<String> call, Throwable t) {
-                Toast.makeText(PatientsActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private void showDischargeDialog(PatientDto patientDto) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        LayoutInflater inflater = this.getLayoutInflater();
-        View dialogView = inflater.inflate(R.layout.dialog_discharge, null);
-        builder.setView(dialogView);
-
-        Spinner spinnerDischargeReason = dialogView.findViewById(R.id.spinnerDischargeReason);
-        Button buttonConfirmDischarge = dialogView.findViewById(R.id.buttonConfirmDischarge);
-        Button buttonCancelDischarge = dialogView.findViewById(R.id.buttonCancelDischarge);
-
-        // Set up spinner with discharge reasons (example data)
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
-                R.array.discharge_reasons, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerDischargeReason.setAdapter(adapter);
-
-        AlertDialog dialog = builder.create();
-
-        buttonConfirmDischarge.setOnClickListener(v -> {
-            String selectedReason = (String) spinnerDischargeReason.getSelectedItem();
-            // Perform discharge operation with selected reason
-            dischargePatient(patientDto, selectedReason);
-            dialog.dismiss();
-        });
-
-        buttonCancelDischarge.setOnClickListener(v -> dialog.dismiss());
-
-        dialog.show();
-    }
-
-    private void dischargePatient(PatientDto patientDto, String selectedReason) {
-        DischargeReasonDto dischargeReasonDto = new DischargeReasonDto(patientDto.getId(), selectedReason);
-
-        Call<String> call = admissionStateApi.setDischargeReason(dischargeReasonDto);
-        call.enqueue(new Callback<String>() {
-            @Override
-            public void onResponse(Call<String> call, Response<String> response) {
-                if (response.isSuccessful()) {
-                    Toast.makeText(PatientsActivity.this, response.body(), Toast.LENGTH_SHORT).show();
-                    loadPatients(); // Refresh the list after successful discharge
-                } else {
-                    Toast.makeText(PatientsActivity.this, "Failed to discharge patient", Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<String> call, Throwable t) {
-                Toast.makeText(PatientsActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
     private void savePatient(PatientDto patientDto) {
         Call<String> call = patientsApi.savePatient(patientDto);
         call.enqueue(new Callback<String>() {
             @Override
             public void onResponse(Call<String> call, Response<String> response) {
                 if (response.isSuccessful()) {
-                    // Refresh the patient list after successfully adding a new patient
-                    loadPatients();
-                    Toast.makeText(PatientsActivity.this, response.body(), Toast.LENGTH_SHORT).show();
+                    String responseBody = response.body();
+                    Toast.makeText(requireContext(), responseBody, Toast.LENGTH_SHORT).show();
+                    loadPatients(); // Refresh patient list after save
                 } else {
-                    Toast.makeText(PatientsActivity.this, "Failed to add patient", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), "Failed to add patient", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<String> call, Throwable t) {
-                Toast.makeText(PatientsActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void populatePatients(List<PatientDto> patientDtos) {
-        patientAdapter.setData(patientDtos);
+    private void populatePatients(List<PatientDto> patientDtoList) {
+        patientAdapter.setData(patientDtoList);
     }
 }
-

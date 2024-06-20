@@ -2,7 +2,6 @@ package com.example.hospitalapp.adapter;
 
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,8 +11,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.hospitalapp.AdmissionsManagementActivity;
-import com.example.hospitalapp.ClinicalRecordsActivity;
+import com.example.hospitalapp.activities.AdmissionsManagementActivity;
+import com.example.hospitalapp.activities.ClinicalRecordsActivity;
 import com.example.hospitalapp.R;
 import com.example.hospitalapp.dto.PatientDto;
 
